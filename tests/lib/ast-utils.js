@@ -421,4 +421,72 @@ describe("ast-utils", function() {
             assert(!astUtils.isLoop(ast.body[1]));
         });
     });
+
+    describe("getStaticPropertyName", function() {
+        it("should return 'b' for `a.b`", function() {
+            var ast = espree.parse("a.b");
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), "b");
+        });
+
+        it("should return 'b' for `a['b']`", function() {
+            var ast = espree.parse("a['b']");
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), "b");
+        });
+
+        it("should return 'b' for `a[`b`]`", function() {
+            var ast = espree.parse("a[`b`]", {ecmaVersion: 6});
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), "b");
+        });
+
+        it("should return '100' for `a[100]`", function() {
+            var ast = espree.parse("a[100]");
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), "100");
+        });
+
+        it("should return null for `a[b]`", function() {
+            var ast = espree.parse("a[b]");
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), null);
+        });
+
+        it("should return null for `a['a' + 'b']`", function() {
+            var ast = espree.parse("a['a' + 'b']");
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), null);
+        });
+
+        it("should return null for `a[tag`b`]`", function() {
+            var ast = espree.parse("a[tag`b`]", {ecmaVersion: 6});
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), null);
+        });
+
+        it("should return null for `a[`${b}`]`", function() {
+            var ast = espree.parse("a[`${b}`]", {ecmaVersion: 6});
+            var node = ast.body[0].expression;
+
+            assert.strictEqual(astUtils.getStaticPropertyName(node), null);
+        });
+
+        it("should return null for non member expressions", function() {
+            var ast = espree.parse("foo()");
+
+            assert.strictEqual(astUtils.getStaticPropertyName(ast.body[0].expression), null);
+            assert.strictEqual(astUtils.getStaticPropertyName(ast.body[0]), null);
+            assert.strictEqual(astUtils.getStaticPropertyName(ast.body), null);
+            assert.strictEqual(astUtils.getStaticPropertyName(ast), null);
+            assert.strictEqual(astUtils.getStaticPropertyName(null), null);
+        });
+    });
 });
